@@ -13,7 +13,7 @@ using NzbDrone.Core.Tv.Events;
 namespace NzbDrone.Core.Test.TvTests.SeriesAddedServiceTests
 {
     [TestFixture]
-    public class SetEpisodeMontitoredFixture : CoreTest<SeriesAddedService>
+    public class SetEpisodeMontitoredFixture : CoreTest<SeriesAddedHandler>
     {
         private Series _series;
         private List<Episode> _episodes;

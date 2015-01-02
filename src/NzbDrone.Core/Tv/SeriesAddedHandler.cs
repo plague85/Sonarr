@@ -12,7 +12,7 @@ using NzbDrone.Core.Tv.Events;
 
 namespace NzbDrone.Core.Tv
 {
-    public class SeriesAddedService : IHandle<SeriesAddedEvent>,
+    public class SeriesAddedHandler : IHandle<SeriesAddedEvent>,
                                       IHandle<SeriesScannedEvent>
     {
         private readonly ISeriesService _seriesService;
@@ -21,7 +21,7 @@ namespace NzbDrone.Core.Tv
         private readonly Logger _logger;
         private readonly ICached<AddSeriesOptions> _addSeriesOptionsCache;
 
-        public SeriesAddedService(ISeriesService seriesService,
+        public SeriesAddedHandler(ISeriesService seriesService,
                                   IEpisodeService episodeService,
                                   ICacheManager cacheManager,
                                   ICommandExecutor commandExecutor,
@@ -77,40 +77,9 @@ namespace NzbDrone.Core.Tv
             _episodeService.UpdateEpisodes(episodes);
         }
 
-        private void SearchForMissingEpisodes(Series series, List<Episode> episodes)
+        private void SearchForMissingEpisodes(Series series)
         {
-            var missing = episodes.Where(e => e.Monitored && !e.HasFile).GroupBy(e => e.SeasonNumber);
-
-            var missingEpisodeIds = new List<int>();
-
-            foreach (var group in missing)
-            {
-                var seasonNumber = group.Key;
-
-                if (group.Count() > 1)
-                {
-                    //season search
-                    _commandExecutor.PublishCommand(new SeasonSearchCommand
-                                                    {
-                                                        SeriesId = series.Id,
-                                                        SeasonNumber = seasonNumber
-                                                    });
-                }
-
-                else
-                {
-                    missingEpisodeIds.AddRange(group.Select(e => e.Id));                    
-                }
-            }
-
-            if (missingEpisodeIds.Any())
-            {
-                _commandExecutor.PublishCommand(new EpisodeSearchCommand
-                                                    {
-                                                        EpisodeIds = missingEpisodeIds
-                                                    });
-            }
-
+            _commandExecutor.PublishCommand(new MissingEpisodeSearchCommand(series.Id));
         }
 
         public void Handle(SeriesAddedEvent message)
@@ -133,7 +102,7 @@ namespace NzbDrone.Core.Tv
             
             if (options.SearchForMissingEpisodes)
             {
-                SearchForMissingEpisodes(message.Series, episodes);
+                SearchForMissingEpisodes(message.Series);
             }
         }
     }
