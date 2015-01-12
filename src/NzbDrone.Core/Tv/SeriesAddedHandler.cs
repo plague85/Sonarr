@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
-using NzbDrone.Common.Cache;
 using NzbDrone.Common.Extensions;
 using NzbDrone.Core.IndexerSearch;
 using NzbDrone.Core.MediaFiles.Events;
@@ -18,20 +17,20 @@ namespace NzbDrone.Core.Tv
         private readonly ISeriesService _seriesService;
         private readonly IEpisodeService _episodeService;
         private readonly ICommandExecutor _commandExecutor;
+        private readonly ISeriesAddedQueueRepository _repo;
         private readonly Logger _logger;
-        private readonly ICached<AddSeriesOptions> _addSeriesOptionsCache;
 
         public SeriesAddedHandler(ISeriesService seriesService,
                                   IEpisodeService episodeService,
-                                  ICacheManager cacheManager,
                                   ICommandExecutor commandExecutor,
+                                  ISeriesAddedQueueRepository repo,
                                   Logger logger)
         {
             _seriesService = seriesService;
             _episodeService = episodeService;
             _commandExecutor = commandExecutor;
+            _repo = repo;
             _logger = logger;
-            _addSeriesOptionsCache = cacheManager.GetCache<AddSeriesOptions>(GetType());
         }
 
         private void UnmonitorEpisodes(IEnumerable<Episode> episodes)
@@ -84,12 +83,14 @@ namespace NzbDrone.Core.Tv
 
         public void Handle(SeriesAddedEvent message)
         {
-            _addSeriesOptionsCache.Set(message.Series.Id.ToString(), message.Options);
+            message.Options.SeriesId = message.Series.Id;
+
+            _repo.Insert(message.Options);
         }
 
         public void Handle(SeriesScannedEvent message)
         {
-            var options = _addSeriesOptionsCache.Find(message.Series.Id.ToString());
+            var options = _repo.Find(message.Series.Id);
 
             if (options == null)
             {
@@ -104,6 +105,8 @@ namespace NzbDrone.Core.Tv
             {
                 SearchForMissingEpisodes(message.Series);
             }
+
+            _repo.Delete(options.Id);
         }
     }
 }

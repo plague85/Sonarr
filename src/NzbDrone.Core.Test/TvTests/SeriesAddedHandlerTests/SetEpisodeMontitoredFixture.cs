@@ -10,7 +10,7 @@ using NzbDrone.Core.Test.Framework;
 using NzbDrone.Core.Tv;
 using NzbDrone.Core.Tv.Events;
 
-namespace NzbDrone.Core.Test.TvTests.SeriesAddedServiceTests
+namespace NzbDrone.Core.Test.TvTests.SeriesAddedHandlerTests
 {
     [TestFixture]
     public class SetEpisodeMontitoredFixture : CoreTest<SeriesAddedHandler>
@@ -45,7 +45,6 @@ namespace NzbDrone.Core.Test.TvTests.SeriesAddedServiceTests
                                         .TheNext(1)
                                         .With(e => e.EpisodeFileId = 0)
                                         .With(e => e.AirDateUtc = null)
-                                        //TODO: Need cases for specials (they should always be ignored)
                                         .Build()
                                         .ToList();
 
@@ -57,6 +56,10 @@ namespace NzbDrone.Core.Test.TvTests.SeriesAddedServiceTests
         private void WithSeriesAddedEvent(AddSeriesOptions options)
         {
             Subject.Handle(new SeriesAddedEvent(_series, options));
+
+            Mocker.GetMock<ISeriesAddedQueueRepository>()
+                  .Setup(s => s.Find(It.IsAny<int>()))
+                  .Returns(options);
         }
 
         private void WithSeriesScannedEvent()
@@ -133,7 +136,7 @@ namespace NzbDrone.Core.Test.TvTests.SeriesAddedServiceTests
         }
 
         [Test]
-        public void should_not_monitor_missing_speicals()
+        public void should_not_monitor_missing_specials()
         {
             GivenSpecials();
 
