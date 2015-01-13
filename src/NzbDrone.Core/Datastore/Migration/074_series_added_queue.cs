@@ -9,11 +9,10 @@ namespace NzbDrone.Core.Datastore.Migration
         protected override void MainDbUpgrade()
         {
             Create.TableForModel("SeriesAddedQueue")
-                  .WithColumn("SeriesId").AsInt32().Nullable()
-                  .WithColumn("SearchForMissingEpisodes").AsBoolean().Nullable()
-                  .WithColumn("IgnoreEpisodesWithFiles").AsBoolean().Nullable()
-                  .WithColumn("IgnoreEpisodesWithoutFiles").AsBoolean().Nullable()
-                  .WithColumn("IgnoreSeasons").AsString().NotNullable();
+                  .WithColumn("SeriesId").AsInt32().NotNullable()
+                  .WithColumn("SearchForMissingEpisodes").AsBoolean().NotNullable()
+                  .WithColumn("IgnoreEpisodesWithFiles").AsBoolean().NotNullable()
+                  .WithColumn("IgnoreEpisodesWithoutFiles").AsBoolean().NotNullable();
         }
     }
 }
