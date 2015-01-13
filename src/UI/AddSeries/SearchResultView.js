@@ -165,11 +165,11 @@ define(
             },
 
             _addWithoutSearch: function () {
-                this.addSeries(false);
+                this._addSeries(false);
             },
 
             _addAndSearch: function() {
-                this.addSeries(true);
+                this._addSeries(true);
             },
 
             _addSeries: function (searchForMissingEpisodes) {
@@ -185,10 +185,11 @@ define(
                 options.searchForMissingEpisodes = searchForMissingEpisodes;
 
                 this.model.set({
-                    profileId: profile,
-                    rootFolderPath: rootFolderPath,
-                    seasonFolder: seasonFolder,
-                    seriesType: seriesType
+                    profileId      : profile,
+                    rootFolderPath : rootFolderPath,
+                    seasonFolder   : seasonFolder,
+                    seriesType     : seriesType,
+                    options        : options
                 }, { silent: true });
 
                 var self = this;
@@ -229,13 +230,14 @@ define(
 
             _getAddSeriesOptions: function () {
                 var monitor = this.ui.seriesType.val();
-                var lastSeason = _.max(this.model.get('seasons'));
-                var firstSeason = _.min(_.without(this.model.get('seasons')));
+                var lastSeason = _.max(this.model.get('seasons'), 'seasonNumber');
+                var firstSeason = _.min(_.reject(this.model.get('seasons'), { seasonNumber: 0 }), 'seasonNumber');
+
+                this.model.setSeasonPass(firstSeason.seasonNumber);
 
                 var options = {
                     ignoreEpisodesWithFiles: false,
-                    ignoreEpisodesWithoutFiles: false,
-                    ignoreSeasons: []
+                    ignoreEpisodesWithoutFiles: false
                 };
 
                 if (monitor === 'all') {
@@ -248,12 +250,13 @@ define(
                 }
 
                 else if (monitor === 'latest') {
-                    options.ignoreSeasons = this._setIgnoreSeasons(lastSeason);
+                    this.model.setSeasonPass(lastSeason.seasonNumber);
                 }
 
                 else if (monitor === 'first') {
-                    //_.min(_.reject(this.model.get('seasons'), { seasonNumber: 0 }), 'seasonNumber');
-                    options.ignoreSeasons = this._setIgnoreSeasons(firstSeason);
+                    this.model.setSeasonPass(lastSeason + 1);
+                    
+                    firstSeason.monitor = true;
                 }
 
                 else if (monitor === 'missing') {
@@ -265,18 +268,6 @@ define(
                 }
 
                 return options;
-            },
-
-            _setIgnoreSeasons: function (seasonToMonitor) {
-                var ignoreSeasons = [];
-
-                _.each(this.model.get('seasons'), function (season) {
-                    if (season.seasonNumber !== seasonToMonitor) {
-                        ignoreSeasons.push(season.seasonNumber);
-                    }
-                });
-
-                return ignoreSeasons;
             }
         });
 

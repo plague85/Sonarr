@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MediaInfoDotNet;
 using NLog;
 using NzbDrone.Common.Extensions;
 using NzbDrone.Core.IndexerSearch;
@@ -12,7 +13,8 @@ using NzbDrone.Core.Tv.Events;
 namespace NzbDrone.Core.Tv
 {
     public class SeriesAddedHandler : IHandle<SeriesAddedEvent>,
-                                      IHandle<SeriesScannedEvent>
+                                      IHandle<SeriesScannedEvent>,
+                                      IHandle<SeriesScanSkippedEvent>
     {
         private readonly ISeriesService _seriesService;
         private readonly IEpisodeService _episodeService;
@@ -59,11 +61,6 @@ namespace NzbDrone.Core.Tv
 
             foreach (var season in series.Seasons)
             {
-                if (options.IgnoreSeasons.Contains(season.SeasonNumber))
-                {
-                    season.Monitored = false;
-                }
-
                 if (series.Seasons.Select(s => s.SeasonNumber).MaxOrDefault() != season.SeasonNumber &&
                     episodes.Where(e => e.SeasonNumber == season.SeasonNumber).All(e => !e.Monitored))
                     
@@ -81,6 +78,27 @@ namespace NzbDrone.Core.Tv
             _commandExecutor.PublishCommand(new MissingEpisodeSearchCommand(series.Id));
         }
 
+        private void HandleScanEvents(Series series)
+        {
+            var options = _repo.Find(series.Id);
+
+            if (options == null)
+            {
+                _logger.Debug("[{0}] Was not recently added, skipping post-add actions", series.Title);
+                return;
+            }
+
+            var episodes = _episodeService.GetEpisodeBySeries(series.Id);
+            SetEpisodeMonitoredStatus(series, episodes, options);
+
+            if (options.SearchForMissingEpisodes)
+            {
+                SearchForMissingEpisodes(series);
+            }
+
+            _repo.Delete(options.Id);
+        }
+
         public void Handle(SeriesAddedEvent message)
         {
             message.Options.SeriesId = message.Series.Id;
@@ -90,23 +108,12 @@ namespace NzbDrone.Core.Tv
 
         public void Handle(SeriesScannedEvent message)
         {
-            var options = _repo.Find(message.Series.Id);
+            HandleScanEvents(message.Series);
+        }
 
-            if (options == null)
-            {
-                _logger.Debug("[{0}] Was not recently added, skipping post-add actions", message.Series.Title);
-                return;
-            }
-            
-            var episodes = _episodeService.GetEpisodeBySeries(message.Series.Id);
-            SetEpisodeMonitoredStatus(message.Series, episodes, options);
-            
-            if (options.SearchForMissingEpisodes)
-            {
-                SearchForMissingEpisodes(message.Series);
-            }
-
-            _repo.Delete(options.Id);
+        public void Handle(SeriesScanSkippedEvent message)
+        {
+            HandleScanEvents(message.Series);
         }
     }
 }

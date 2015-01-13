@@ -119,23 +119,6 @@ namespace NzbDrone.Core.Test.TvTests.SeriesAddedHandlerTests
         }
 
         [Test]
-        public void should_be_able_to_monitor_first_season_only()
-        {
-            WithSeriesAddedEvent(new AddSeriesOptions
-            {
-                IgnoreSeasons = _series.Seasons.Select(s => s.SeasonNumber).Except(new []{1}).ToList()
-            });
-
-            WithSeriesScannedEvent();
-
-            Mocker.GetMock<ISeriesService>()
-                  .Verify(v => v.UpdateSeries(It.Is<Series>(s => s.Seasons.Single(n => n.SeasonNumber == 1).Monitored)));
-
-            Mocker.GetMock<ISeriesService>()
-                  .Verify(v => v.UpdateSeries(It.Is<Series>(s => s.Seasons.Where(n => n.SeasonNumber != 1).All(n => !n.Monitored))));
-        }
-
-        [Test]
         public void should_not_monitor_missing_specials()
         {
             GivenSpecials();
