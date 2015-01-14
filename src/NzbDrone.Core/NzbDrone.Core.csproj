@@ -235,7 +235,7 @@
     <Compile Include="Datastore\Migration\075_force_lib_update.cs" />
     <Compile Include="Datastore\Migration\074_disable_eztv.cs" />
     <Compile Include="Datastore\Migration\073_clear_ratings.cs" />
-    <Compile Include="Datastore\Migration\074_series_added_queue.cs" />
+    <Compile Include="Datastore\Migration\074_add_add_options_to_series.cs" />
     <Compile Include="Datastore\Migration\070_delay_profile.cs" />
     <Compile Include="Datastore\Migration\Framework\MigrationContext.cs" />
     <Compile Include="Datastore\Migration\Framework\MigrationController.cs" />
@@ -830,8 +830,7 @@
     <Compile Include="Tv\RefreshSeriesService.cs" />
     <Compile Include="Tv\Season.cs" />
     <Compile Include="Tv\Series.cs" />
-    <Compile Include="Tv\SeriesAddedHandler.cs" />
-    <Compile Include="Tv\SeriesAddedQueueRepository.cs" />
+    <Compile Include="Tv\SeriesScannedHandler.cs" />
     <Compile Include="Tv\SeriesEditedService.cs" />
     <Compile Include="Tv\SeriesRepository.cs" />
     <Compile Include="Tv\SeriesService.cs">

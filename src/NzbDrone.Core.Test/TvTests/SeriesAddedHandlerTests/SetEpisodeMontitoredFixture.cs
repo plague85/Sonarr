@@ -55,11 +55,7 @@ namespace NzbDrone.Core.Test.TvTests.SeriesAddedHandlerTests
 
         private void WithSeriesAddedEvent(AddSeriesOptions options)
         {
-            Subject.Handle(new SeriesAddedEvent(_series, options));
-
-            Mocker.GetMock<ISeriesAddedQueueRepository>()
-                  .Setup(s => s.Find(It.IsAny<int>()))
-                  .Returns(options);
+            _series.AddOptions = options;
         }
 
         private void WithSeriesScannedEvent()
