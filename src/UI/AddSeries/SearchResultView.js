@@ -48,7 +48,8 @@ define(
                 'change .x-profile'       : '_profileChanged',
                 'change .x-root-folder'   : '_rootFolderChanged',
                 'change .x-season-folder' : '_seasonFolderChanged',
-                'change .x-series-type'   : '_seriesTypeChanged'
+                'change .x-series-type'   : '_seriesTypeChanged',
+                'change .x-monitor'       : '_monitorChanged'
             },
 
             initialize: function () {
@@ -71,6 +72,7 @@ define(
                 var defaultRoot = Config.getValue(Config.Keys.DefaultRootFolderId);
                 var useSeasonFolder = Config.getValueBoolean(Config.Keys.UseSeasonFolder, true);
                 var defaultSeriesType = Config.getValue(Config.Keys.DefaultSeriesType, 'standard');
+                var defaultMonitorEpisodes = Config.getValue(Config.Keys.MonitorEpisodes, 'missing');
 
                 if (Profiles.get(defaultProfile)) {
                     this.ui.profile.val(defaultProfile);
@@ -82,6 +84,7 @@ define(
 
                 this.ui.seasonFolder.prop('checked', useSeasonFolder);
                 this.ui.seriesType.val(defaultSeriesType);
+                this.ui.monitor.val(defaultMonitorEpisodes);
 
                 //TODO: make this work via onRender, FM?
                 //works with onShow, but stops working after the first render
@@ -96,7 +99,7 @@ define(
                     content  : content,
                     html     : true,
                     trigger  : 'hover',
-                    title    : 'Initial Monitoring Options',
+                    title    : 'Episode Monitoring Options',
                     placement: 'right',
                     container: this.$el
                 });
@@ -132,6 +135,10 @@ define(
                 else if (options.key === Config.Keys.DefaultSeriesType) {
                     this.ui.seriesType.val(options.value);
                 }
+
+                else if (options.key === Config.Keys.MonitorEpisodes) {
+                    this.ui.monitor.val(options.value);
+                }
             },
 
             _profileChanged: function () {
@@ -156,6 +163,10 @@ define(
 
             _seriesTypeChanged: function () {
                 Config.setValue(Config.Keys.DefaultSeriesType, this.ui.seriesType.val());
+            },
+
+            _monitorChanged: function () {
+                Config.setValue(Config.Keys.MonitorEpisodes, this.ui.monitor.val());
             },
 
             _setRootFolder: function (options) {
