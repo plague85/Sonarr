@@ -1,37 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using MediaInfoDotNet;
 using NLog;
 using NzbDrone.Common.Extensions;
 using NzbDrone.Core.IndexerSearch;
 using NzbDrone.Core.MediaFiles.Events;
 using NzbDrone.Core.Messaging.Commands;
 using NzbDrone.Core.Messaging.Events;
-using NzbDrone.Core.Tv.Events;
 
 namespace NzbDrone.Core.Tv
 {
-    public class SeriesAddedHandler : IHandle<SeriesAddedEvent>,
-                                      IHandle<SeriesScannedEvent>,
-                                      IHandle<SeriesScanSkippedEvent>
+    public class SeriesScannedHandler : IHandle<SeriesScannedEvent>,
+                                        IHandle<SeriesScanSkippedEvent>
     {
         private readonly ISeriesService _seriesService;
         private readonly IEpisodeService _episodeService;
         private readonly ICommandExecutor _commandExecutor;
-        private readonly ISeriesAddedQueueRepository _repo;
+       
         private readonly Logger _logger;
 
-        public SeriesAddedHandler(ISeriesService seriesService,
+        public SeriesScannedHandler(ISeriesService seriesService,
                                   IEpisodeService episodeService,
                                   ICommandExecutor commandExecutor,
-                                  ISeriesAddedQueueRepository repo,
                                   Logger logger)
         {
             _seriesService = seriesService;
             _episodeService = episodeService;
             _commandExecutor = commandExecutor;
-            _repo = repo;
             _logger = logger;
         }
 
@@ -43,17 +38,17 @@ namespace NzbDrone.Core.Tv
             }
         }
         
-        private void SetEpisodeMonitoredStatus(Series series, List<Episode> episodes, AddSeriesOptions options)
+        private void SetEpisodeMonitoredStatus(Series series, List<Episode> episodes)
         {
             _logger.Debug("[{0}] Setting episode monitored status.", series.Title);
 
-            if (options.IgnoreEpisodesWithFiles)
+            if (series.AddOptions.IgnoreEpisodesWithFiles)
             {
                 _logger.Debug("Ignoring Episodes with Files");
                 UnmonitorEpisodes(episodes.Where(e => e.HasFile));
             }
 
-            if (options.IgnoreEpisodesWithoutFiles)
+            if (series.AddOptions.IgnoreEpisodesWithoutFiles)
             {
                 _logger.Debug("Ignoring Episodes without Files");
                 UnmonitorEpisodes(episodes.Where(e => !e.HasFile && e.AirDateUtc.HasValue && e.AirDateUtc.Value.Before(DateTime.UtcNow)));
@@ -80,30 +75,22 @@ namespace NzbDrone.Core.Tv
 
         private void HandleScanEvents(Series series)
         {
-            var options = _repo.Find(series.Id);
-
-            if (options == null)
+            if (series.AddOptions == null)
             {
                 _logger.Debug("[{0}] Was not recently added, skipping post-add actions", series.Title);
                 return;
             }
 
             var episodes = _episodeService.GetEpisodeBySeries(series.Id);
-            SetEpisodeMonitoredStatus(series, episodes, options);
+            SetEpisodeMonitoredStatus(series, episodes);
 
-            if (options.SearchForMissingEpisodes)
+            if (series.AddOptions.SearchForMissingEpisodes)
             {
                 SearchForMissingEpisodes(series);
             }
 
-            _repo.Delete(options.Id);
-        }
-
-        public void Handle(SeriesAddedEvent message)
-        {
-            message.Options.SeriesId = message.Series.Id;
-
-            _repo.Insert(message.Options);
+            series.AddOptions = null;
+            _seriesService.UpdateSeries(series);
         }
 
         public void Handle(SeriesScannedEvent message)

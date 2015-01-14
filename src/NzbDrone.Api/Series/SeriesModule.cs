@@ -110,8 +110,7 @@ namespace NzbDrone.Api.Series
 
         private int AddSeries(SeriesResource seriesResource)
         {
-            var options = seriesResource.Options ?? new AddSeriesOptions();
-            var series = _seriesService.AddSeries(seriesResource.InjectTo<Core.Tv.Series>(), options);
+            var series = _seriesService.AddSeries(seriesResource.InjectTo<Core.Tv.Series>());
 
             return series.Id;
         }

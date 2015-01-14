@@ -101,7 +101,6 @@ namespace NzbDrone.Core.Datastore
             Mapper.Entity<Restriction>().RegisterModel("Restrictions");
 
             Mapper.Entity<DelayProfile>().RegisterModel("DelayProfiles");
-            Mapper.Entity<AddSeriesOptions>().RegisterModel("SeriesAddedQueue");
         }
 
         private static void RegisterMappers()
