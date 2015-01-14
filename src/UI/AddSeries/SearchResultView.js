@@ -189,7 +189,7 @@ define(
                     rootFolderPath : rootFolderPath,
                     seasonFolder   : seasonFolder,
                     seriesType     : seriesType,
-                    options        : options
+                    addOptions     : options
                 }, { silent: true });
 
                 var self = this;
@@ -229,7 +229,7 @@ define(
             },
 
             _getAddSeriesOptions: function () {
-                var monitor = this.ui.seriesType.val();
+                var monitor = this.ui.monitor.val();
                 var lastSeason = _.max(this.model.get('seasons'), 'seasonNumber');
                 var firstSeason = _.min(_.reject(this.model.get('seasons'), { seasonNumber: 0 }), 'seasonNumber');
 
