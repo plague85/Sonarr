@@ -103,7 +103,8 @@ namespace NzbDrone.Core.Datastore
 
             Mapper.Entity<DelayProfile>().RegisterModel("DelayProfiles");
 
-            Mapper.Entity<CommandModel>().RegisterModel("Commands");
+            Mapper.Entity<CommandModel>().RegisterModel("Commands")
+                .Ignore(c => c.Message);
         }
 
         private static void RegisterMappers()
