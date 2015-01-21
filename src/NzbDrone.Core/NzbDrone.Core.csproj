@@ -235,7 +235,7 @@
     <Compile Include="Datastore\Migration\075_force_lib_update.cs" />
     <Compile Include="Datastore\Migration\074_disable_eztv.cs" />
     <Compile Include="Datastore\Migration\073_clear_ratings.cs" />
-    <Compile Include="Datastore\Migration\074_add_add_options_to_series.cs" />
+    <Compile Include="Datastore\Migration\076_add_add_options_to_series.cs" />
     <Compile Include="Datastore\Migration\070_delay_profile.cs" />
     <Compile Include="Datastore\Migration\Framework\MigrationContext.cs" />
     <Compile Include="Datastore\Migration\Framework\MigrationController.cs" />
