@@ -51,7 +51,8 @@ namespace NzbDrone.Api.Authentication
                 return AnonymousUser;
             }
 
-            if (context.CurrentUser != null)
+            //TODO: Store a separate GUID for authentication
+            if (identifier.ToString().Replace("-", "") == _configFileProvider.ApiKey)
             {
                 return new NzbDroneUser { UserName = _configFileProvider.Username };
             }

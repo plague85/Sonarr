@@ -91,7 +91,7 @@ namespace NzbDrone.Api.Frontend.Mappers
 
             var branch = _configFileProvider.Branch;
 
-            if (branch != "master")
+            if (branch == "master")
             {
                 branch = String.Empty;
             }

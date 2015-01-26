@@ -1,6 +1,7 @@
 ﻿using System;
 using Nancy;
 using Nancy.Authentication.Forms;
+using Nancy.Extensions;
 using Nancy.ModelBinding;
 using NzbDrone.Core.Configuration;
 
@@ -12,11 +13,10 @@ namespace NzbDrone.Api.Authentication
         private readonly IConfigFileProvider _configFileProvider;
 
         public LoginModule(IAuthenticationService authenticationService, IConfigFileProvider configFileProvider)
-            : base("login")
         {
             _authenticationService = authenticationService;
             _configFileProvider = configFileProvider;
-            Post["/"] = x => Login(this.Bind<LoginResource>());
+            Post["/login"] = x => Login(this.Bind<LoginResource>());
         }
 
         private Response Login(LoginResource resource)
@@ -25,14 +25,17 @@ namespace NzbDrone.Api.Authentication
 
             if (user == null)
             {
-                return new Response
-                       {
-                           ReasonPhrase = "username and/or password was incorrect",
-                           StatusCode = HttpStatusCode.Unauthorized
-                       };
+                return Context.GetRedirect("~/login?returnUrl=" + (string)Request.Query.returnUrl);
             }
 
-            return this.LoginAndRedirect(Guid.Parse(_configFileProvider.ApiKey), fallbackRedirectUrl: "/");
+            DateTime? expiry = null;
+
+            if (resource.RememberMe)
+            {
+                expiry = DateTime.UtcNow.AddDays(7);
+            }
+
+            return this.LoginAndRedirect(Guid.Parse(_configFileProvider.ApiKey), expiry);
         }
     }
 }
