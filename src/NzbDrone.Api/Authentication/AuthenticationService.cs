@@ -2,6 +2,7 @@
 using System.Linq;
 using Nancy;
 using Nancy.Authentication.Basic;
+using Nancy.Authentication.Forms;
 using Nancy.Security;
 using NzbDrone.Api.Extensions;
 using NzbDrone.Common.Extensions;
@@ -9,9 +10,10 @@ using NzbDrone.Core.Configuration;
 
 namespace NzbDrone.Api.Authentication
 {
-    public interface IAuthenticationService : IUserValidator
+    public interface IAuthenticationService : IUserValidator, IUserMapper
     {
         bool IsAuthenticated(NancyContext context);
+        IUserIdentity Validate(string username, string password);
     }
 
     public class AuthenticationService : IAuthenticationService
@@ -42,12 +44,19 @@ namespace NzbDrone.Api.Authentication
             return null;
         }
 
-        private bool Enabled
+        public IUserIdentity GetUserFromIdentifier(Guid identifier, NancyContext context)
         {
-            get
+            if (!Enabled)
             {
-                return _configFileProvider.AuthenticationEnabled;
+                return AnonymousUser;
             }
+
+            if (context.CurrentUser != null)
+            {
+                return new NzbDroneUser { UserName = _configFileProvider.Username };
+            }
+
+            return null;
         }
 
         public bool IsAuthenticated(NancyContext context)
@@ -74,6 +83,16 @@ namespace NzbDrone.Api.Authentication
                 return false;
             }
 
+            if (context.Request.IsLoginRequest())
+            {
+                return true;
+            }
+
+            if (context.Request.IsContentRequest())
+            {
+                return true;
+            }
+
             if (!Enabled)
             {
                 return true;
@@ -85,6 +104,14 @@ namespace NzbDrone.Api.Authentication
             }
 
             return false;
+        }
+
+        private bool Enabled
+        {
+            get
+            {
+                return _configFileProvider.AuthenticationEnabled;
+            }
         }
 
         private bool ValidUser(NancyContext context)

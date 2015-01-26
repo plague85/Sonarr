@@ -52,6 +52,8 @@ namespace NzbDrone.Api.Frontend
                 }
             }
 
+            var test = _requestMappers.Where(m => m.CanHandle(path));
+
             var mapper = _requestMappers.SingleOrDefault(m => m.CanHandle(path));
 
             if (mapper != null)

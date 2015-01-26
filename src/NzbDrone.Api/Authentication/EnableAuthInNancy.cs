@@ -1,5 +1,6 @@
 ﻿using Nancy;
 using Nancy.Authentication.Basic;
+using Nancy.Authentication.Forms;
 using Nancy.Bootstrapper;
 using NzbDrone.Api.Extensions.Pipelines;
 
@@ -16,6 +17,12 @@ namespace NzbDrone.Api.Authentication
 
         public void Register(IPipelines pipelines)
         {
+            FormsAuthentication.Enable(pipelines, new FormsAuthenticationConfiguration
+                                                  {
+                                                      RedirectUrl = "~/login",
+                                                      UserMapper = _authenticationService
+                                                  });
+
             pipelines.EnableBasicAuthentication(new BasicAuthenticationConfiguration(_authenticationService, "Sonarr"));
             pipelines.BeforeRequest.AddItemToEndOfPipeline(RequiresAuthentication);
         }

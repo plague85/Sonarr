@@ -17,6 +17,12 @@ gulp.task('copyIndex', function () {
         .pipe(gulp.dest(paths.dest.root));
 });
 
+gulp.task('copyLogin', function () {
+  return gulp.src(paths.src.login)
+  .pipe(cache('copyLogin'))
+  .pipe(gulp.dest(paths.dest.root));
+});
+
 gulp.task('copyContent', function () {
     return gulp.src([paths.src.content + '**/*.*', '!**/*.less'])
         .pipe(gulp.dest(paths.dest.content));
