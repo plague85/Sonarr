@@ -6,6 +6,7 @@ using NzbDrone.Common;
 using NzbDrone.Common.Extensions;
 using NzbDrone.Common.Instrumentation.Extensions;
 using NzbDrone.Core.Datastore;
+using NzbDrone.Core.DecisionEngine;
 using NzbDrone.Core.Download;
 using NzbDrone.Core.Messaging.Commands;
 using NzbDrone.Core.Messaging.Events;
@@ -79,21 +80,21 @@ namespace NzbDrone.Core.IndexerSearch
                     {
                         rateGate.WaitToProceed();
 
+                        List<DownloadDecision> decisions;
+
                         if (season.Count() > 1)
                         {
-                            var decisions = _nzbSearchService.SeasonSearch(series.Key, season.Key);
-                            var processed = _processDownloadDecisions.ProcessDecisions(decisions);
-
-                            downloadedCount += processed.Grabbed.Count;
+                            decisions = _nzbSearchService.SeasonSearch(series.Key, season.Key);
                         }
 
                         else
                         {
-                            var decisions = _nzbSearchService.EpisodeSearch(season.First());
-                            var processed = _processDownloadDecisions.ProcessDecisions(decisions);
-
-                            downloadedCount += processed.Grabbed.Count;
+                            decisions = _nzbSearchService.EpisodeSearch(season.First());
                         }
+
+                        var processed = _processDownloadDecisions.ProcessDecisions(decisions);
+
+                        downloadedCount += processed.Grabbed.Count;
                     }
                 }
             }
@@ -138,7 +139,8 @@ namespace NzbDrone.Core.IndexerSearch
                                                                     }).Records.ToList();
             }
 
-            var missing = episodes.Where(e => !_queueService.GetQueue().Select(q => q.Episode.Id).Contains(e.Id)).ToList();
+            var queue = _queueService.GetQueue();
+            var missing = episodes.Where(e => !queue.Select(q => q.Episode.Id).Contains(e.Id)).ToList();
 
             SearchForMissingEpisodes(missing);
         }
