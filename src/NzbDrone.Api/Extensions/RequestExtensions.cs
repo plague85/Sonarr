@@ -29,12 +29,12 @@ namespace NzbDrone.Api.Extensions
 
         public static bool IsLoginRequest(this Request request)
         {
-            return request.Path.StartsWith("/login", StringComparison.InvariantCultureIgnoreCase);
+            return request.Path.Equals("/login", StringComparison.InvariantCultureIgnoreCase);
         }
 
         public static bool IsContentRequest(this Request request)
         {
-            return request.Path.StartsWith("/Content", StringComparison.InvariantCultureIgnoreCase);
+            return request.Path.StartsWith("/Content/", StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

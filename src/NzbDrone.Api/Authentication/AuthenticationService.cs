@@ -6,6 +6,7 @@ using Nancy.Authentication.Forms;
 using Nancy.Security;
 using NzbDrone.Api.Extensions;
 using NzbDrone.Common.Extensions;
+using NzbDrone.Core.Authentication;
 using NzbDrone.Core.Configuration;
 
 namespace NzbDrone.Api.Authentication
@@ -19,26 +20,29 @@ namespace NzbDrone.Api.Authentication
     public class AuthenticationService : IAuthenticationService
     {
         private readonly IConfigFileProvider _configFileProvider;
+        private readonly IUserService _userService;
         private static readonly NzbDroneUser AnonymousUser = new NzbDroneUser { UserName = "Anonymous" };
         private static String API_KEY;
 
-        public AuthenticationService(IConfigFileProvider configFileProvider)
+        public AuthenticationService(IConfigFileProvider configFileProvider, IUserService userService)
         {
             _configFileProvider = configFileProvider;
+            _userService = userService;
             API_KEY = configFileProvider.ApiKey;
         }
 
         public IUserIdentity Validate(string username, string password)
         {
-            if (!Enabled)
+            if (_configFileProvider.Authentication == AuthenticationType.Disabled)
             {
                 return AnonymousUser;
             }
 
-            if (_configFileProvider.Username.Equals(username) &&
-                _configFileProvider.Password.Equals(password))
+            var user = _userService.FindUser(username, password);
+
+            if (user != null)
             {
-                return new NzbDroneUser { UserName = username };
+                return new NzbDroneUser { UserName = user.Username };
             }
 
             return null;
@@ -46,15 +50,16 @@ namespace NzbDrone.Api.Authentication
 
         public IUserIdentity GetUserFromIdentifier(Guid identifier, NancyContext context)
         {
-            if (!Enabled)
+            if (_configFileProvider.Authentication == AuthenticationType.Disabled)
             {
                 return AnonymousUser;
             }
 
-            //TODO: Store a separate GUID for authentication
-            if (identifier.ToString().Replace("-", "") == _configFileProvider.ApiKey)
+            var user = _userService.FindUser(identifier);
+
+            if (user != null)
             {
-                return new NzbDroneUser { UserName = _configFileProvider.Username };
+                return new NzbDroneUser { UserName = user.Username };
             }
 
             return null;
@@ -69,13 +74,13 @@ namespace NzbDrone.Api.Authentication
                 return ValidApiKey(apiKey);
             }
 
+            if (_configFileProvider.Authentication == AuthenticationType.Disabled)
+            {
+                return true;
+            }
+
             if (context.Request.IsFeedRequest())
             {
-                if (!Enabled)
-                {
-                    return true;
-                }
-
                 if (ValidUser(context) || ValidApiKey(apiKey))
                 {
                     return true;
@@ -94,25 +99,12 @@ namespace NzbDrone.Api.Authentication
                 return true;
             }
 
-            if (!Enabled)
-            {
-                return true;
-            }
-
             if (ValidUser(context))
             {
                 return true;
             }
 
             return false;
-        }
-
-        private bool Enabled
-        {
-            get
-            {
-                return _configFileProvider.AuthenticationEnabled;
-            }
         }
 
         private bool ValidUser(NancyContext context)

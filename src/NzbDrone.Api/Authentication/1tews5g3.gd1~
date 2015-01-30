@@ -4,7 +4,6 @@ using Nancy.Authentication.Forms;
 using Nancy.Bootstrapper;
 using Nancy.Cryptography;
 using NzbDrone.Api.Extensions.Pipelines;
-using NzbDrone.Core.Authentication;
 using NzbDrone.Core.Configuration;
 
 namespace NzbDrone.Api.Authentication
@@ -26,16 +25,8 @@ namespace NzbDrone.Api.Authentication
 
         public void Register(IPipelines pipelines)
         {
-            if (_configFileProvider.Authentication == AuthenticationType.Forms)
-            {
-                RegisterFormsAuth(pipelines);                
-            }
-
-            else if (_configFileProvider.Authentication == AuthenticationType.Basic)
-            {
-                pipelines.EnableBasicAuthentication(new BasicAuthenticationConfiguration(_authenticationService, "Sonarr"));                
-            }
-
+            RegisterFormsAuth(pipelines);
+            pipelines.EnableBasicAuthentication(new BasicAuthenticationConfiguration(_authenticationService, "Sonarr"));
             pipelines.BeforeRequest.AddItemToEndOfPipeline(RequiresAuthentication);
         }
 
@@ -53,11 +44,6 @@ namespace NzbDrone.Api.Authentication
 
         private void RegisterFormsAuth(IPipelines pipelines)
         {
-            if (_configFileProvider.Authentication != AuthenticationType.Forms)
-            {
-                return;
-            }
-
             var cryptographyConfiguration = new CryptographyConfiguration(
                     new RijndaelEncryptionProvider(new PassphraseKeyGenerator(_configService.RijndaelPassphrase,
                                                    new byte[] {1, 2, 3, 4, 5, 6, 7, 8})),

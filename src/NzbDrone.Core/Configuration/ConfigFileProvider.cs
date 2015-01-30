@@ -9,6 +9,7 @@ using NzbDrone.Common.Cache;
 using NzbDrone.Common.Disk;
 using NzbDrone.Common.EnvironmentInfo;
 using NzbDrone.Common.Extensions;
+using NzbDrone.Core.Authentication;
 using NzbDrone.Core.Configuration.Events;
 using NzbDrone.Core.Lifecycle;
 using NzbDrone.Core.Messaging.Commands;
@@ -29,14 +30,11 @@ namespace NzbDrone.Core.Configuration
         int SslPort { get; }
         bool EnableSsl { get; }
         bool LaunchBrowser { get; }
-        bool AuthenticationEnabled { get; }
+        AuthenticationType Authentication { get; }
         bool AnalyticsEnabled { get; }
-        string Username { get; }
-        string Password { get; }
         string LogLevel { get; }
         string Branch { get; }
         string ApiKey { get; }
-        bool Torrent { get; }
         string SslCertHash { get; }
         string UrlBase { get; }
         Boolean UpdateAutomatically { get; }
@@ -163,14 +161,9 @@ namespace NzbDrone.Core.Configuration
             }
         }
 
-        public bool Torrent
+        public AuthenticationType Authentication
         {
-            get { return GetValueBoolean("Torrent", false, persist: false); }
-        }
-
-        public bool AuthenticationEnabled
-        {
-            get { return GetValueBoolean("AuthenticationEnabled", false); }
+            get { return GetValueEnum("Authentication", AuthenticationType.Disabled); }
         }
 
         public bool AnalyticsEnabled
@@ -374,9 +367,22 @@ namespace NzbDrone.Core.Configuration
             return Guid.NewGuid().ToString().Replace("-", "");
         }
 
+        private void ConvertAuthentication()
+        {
+            var enabled = GetValueBoolean("AuthenticationEnabled", false, false);
+
+            if (!enabled)
+            {
+                return;
+            }
+
+            SetValue("Authentication", AuthenticationType.Basic);
+        }
+
         public void HandleAsync(ApplicationStartedEvent message)
         {
             EnsureDefaultConfigFile();
+            ConvertAuthentication();
             DeleteOldValues();
         }
 

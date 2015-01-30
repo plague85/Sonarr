@@ -3,25 +3,23 @@ using Nancy;
 using Nancy.Authentication.Forms;
 using Nancy.Extensions;
 using Nancy.ModelBinding;
-using NzbDrone.Core.Configuration;
+using NzbDrone.Core.Authentication;
 
 namespace NzbDrone.Api.Authentication
 {
     public class LoginModule : NancyModule
     {
-        private readonly IAuthenticationService _authenticationService;
-        private readonly IConfigFileProvider _configFileProvider;
+        private readonly IUserService _userService;
 
-        public LoginModule(IAuthenticationService authenticationService, IConfigFileProvider configFileProvider)
+        public LoginModule(IUserService userService)
         {
-            _authenticationService = authenticationService;
-            _configFileProvider = configFileProvider;
+            _userService = userService;
             Post["/login"] = x => Login(this.Bind<LoginResource>());
         }
 
         private Response Login(LoginResource resource)
         {
-            var user = _authenticationService.Validate(resource.Username, resource.Password);
+            var user = _userService.FindUser(resource.Username, resource.Password);
 
             if (user == null)
             {
@@ -35,7 +33,7 @@ namespace NzbDrone.Api.Authentication
                 expiry = DateTime.UtcNow.AddDays(7);
             }
 
-            return this.LoginAndRedirect(Guid.Parse(_configFileProvider.ApiKey), expiry);
+            return this.LoginAndRedirect(user.Identifier, expiry);
         }
     }
 }

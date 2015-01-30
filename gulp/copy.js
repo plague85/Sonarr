@@ -11,16 +11,10 @@ gulp.task('copyJs', function () {
         .pipe(gulp.dest(paths.dest.root));
 });
 
-gulp.task('copyIndex', function () {
-    return gulp.src(paths.src.index)
-        .pipe(cache('copyIndex'))
+gulp.task('copyHtml', function () {
+    return gulp.src(paths.src.html)
+        .pipe(cache('copyHtml'))
         .pipe(gulp.dest(paths.dest.root));
-});
-
-gulp.task('copyLogin', function () {
-  return gulp.src(paths.src.login)
-  .pipe(cache('copyLogin'))
-  .pipe(gulp.dest(paths.dest.root));
 });
 
 gulp.task('copyContent', function () {

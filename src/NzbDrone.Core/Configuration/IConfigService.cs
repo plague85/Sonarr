@@ -56,9 +56,12 @@ namespace NzbDrone.Core.Configuration
         String TimeFormat { get; set; }
         Boolean ShowRelativeDates { get; set; }
 
-
-
         //Internal
         Boolean CleanupMetadataImages { get; set; }
+
+
+        //Forms Auth
+        string RijndaelPassphrase { get; set; }
+        string HmacPassphrase { get; set; }
     }
 }
