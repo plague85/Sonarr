@@ -1,7 +1,6 @@
 'use strict';
 define(
     [
-        'templates',
         'handlebars',
         'handlebars.helpers',
         'Handlebars/Helpers/DateTime',
@@ -14,12 +13,12 @@ define(
         'Handlebars/Helpers/EachReverse',
         'Handlebars/Helpers/String',
         'Handlebars/Handlebars.Debug'
-    ], function (Templates, Handlebars) {
+    ], function (Handlebars) {
         return function () {
             this.get = function (templateId) {
                 var templateKey = templateId.toLowerCase().replace('template', '');
 
-                var templateFunction = Templates[templateKey];
+                var templateFunction = window.T[templateKey];
 
                 if (!templateFunction) {
                     throw 'couldn\'t find pre-compiled template ' + templateKey;

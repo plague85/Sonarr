@@ -48,10 +48,6 @@ gulp.task('handlebars', function () {
         partialStream,
         coreStream
     ).pipe(concat('templates.js'))
-        .pipe(wrapAmd({
-            deps: ['handlebars'],
-            params: ['Handlebars'],
-            exports: 'this["T"]'
-        }))
+      
         .pipe(gulp.dest(paths.dest.root));
 });

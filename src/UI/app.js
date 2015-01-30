@@ -30,9 +30,7 @@ require.config({
         'jquery'                  : 'JsLibraries/jquery',
         'typeahead'               : 'JsLibraries/typeahead',
         'zero.clipboard'          : 'JsLibraries/zero.clipboard',
-        'libs'                    : 'JsLibraries/',
-
-        'api': 'Require/require.api'
+        'libs'                    : 'JsLibraries/'
     },
 
     shim: {
@@ -253,7 +251,8 @@ define(
         'Shared/Tooltip',
         'Instrumentation/StringFormat',
         'LifeCycle',
-        'Hotkeys/Hotkeys'
+        'Hotkeys/Hotkeys',
+        'Mixins/jquery.ajax'
     ], function ($,
                  Backbone,
                  Marionette,

@@ -3,12 +3,12 @@ define(
     [
         'backbone',
         'Tags/TagModel',
-        'api!tag'
-    ], function (Backbone, TagModel, TagData) {
+        'Shared/ApiData'
+    ], function (Backbone, TagModel, ApiData) {
         var Collection = Backbone.Collection.extend({
             url  : window.NzbDrone.ApiRoot + '/tag',
             model: TagModel
         });
 
-        return new Collection(TagData);
+        return new Collection(ApiData.get('tag'));
     });

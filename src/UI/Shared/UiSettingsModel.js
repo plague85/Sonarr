@@ -2,8 +2,8 @@
 define(
     [
         'backbone',
-        'api!config/ui'
-    ], function (Backbone, uiSettings) {
+        'Shared/ApiData'
+    ], function (Backbone, ApiData) {
         var UiSettings = Backbone.Model.extend({
 
             url : window.NzbDrone.ApiRoot + '/config/ui',
@@ -29,6 +29,6 @@ define(
             }
         });
 
-        var instance = new UiSettings(uiSettings);
+        var instance = new UiSettings(ApiData.get('config/ui'));
         return instance;
     });

@@ -31,6 +31,7 @@
     "jshint-stylish": "1.0.0",
     "requirejs": "2.1.15",
     "run-sequence": "1.0.2",
-    "streamqueue": "0.1.1"
+    "streamqueue": "0.1.1",
+    "gulp-webpack": "1.1.2"
   }
 }

@@ -5,12 +5,12 @@ define(
         'backbone',
         'backbone.pageable',
         'Series/SeriesModel',
-        'api!series',
+        'Shared/ApiData',
         'Mixins/AsFilteredCollection',
         'Mixins/AsSortedCollection',
         'Mixins/AsPersistedStateCollection',
         'moment'
-    ], function (_, Backbone, PageableCollection, SeriesModel, SeriesData, AsFilteredCollection, AsSortedCollection, AsPersistedStateCollection, moment) {
+    ], function (_, Backbone, PageableCollection, SeriesModel, ApiData, AsFilteredCollection, AsSortedCollection, AsPersistedStateCollection, moment) {
         var Collection = PageableCollection.extend({
             url  : window.NzbDrone.ApiRoot + '/series',
             model: SeriesModel,
@@ -93,5 +93,8 @@ define(
         Collection = AsSortedCollection.call(Collection);
         Collection = AsPersistedStateCollection.call(Collection);
 
-        return new Collection(SeriesData, { full: true });
+
+        var data = ApiData.get('series');
+
+        return new Collection(data, { full: true });
     });
