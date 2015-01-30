@@ -11,8 +11,9 @@ require('./copy.js');
 require('./webpack.js');
 
 
-gulp.task('watch', ['jshint', 'handlebars', 'less', 'webpack','copyIndex', 'copyContent','copyJs'], function () {
-    gulp.watch([paths.src.scripts, paths.src.exclude.libs], ['jshint', 'webpack','copyJs']);
+gulp.task('watch', ['jshint', 'handlebars', 'less','copyIndex', 'copyContent','copyJs'], function () {
+    gulp.start('webpackWatch');
+    gulp.watch([paths.src.scripts, paths.src.exclude.libs], ['jshint','copyJs']);
     gulp.watch(paths.src.templates, ['handlebars']);
     gulp.watch([paths.src.less, paths.src.exclude.libs], ['less']);
     gulp.watch([paths.src.index], ['copyIndex']);

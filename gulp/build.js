@@ -8,5 +8,5 @@ require('./copy');
 
 gulp.task('build', function () {
     return  runSequence('clean',
-        ['webpack', 'less', 'copyIndex', 'copyContent', 'copyJs']);
+        ['webpack', 'less', 'handlebars', 'copyIndex', 'copyContent', 'copyJs']);
 });
