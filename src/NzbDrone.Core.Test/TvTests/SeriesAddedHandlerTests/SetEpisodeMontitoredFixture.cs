@@ -24,7 +24,11 @@ namespace NzbDrone.Core.Test.TvTests.SeriesAddedHandlerTests
             var seasons = 4;
 
             _series = Builder<Series>.CreateNew()
-                                     .With(s => s.Seasons = Builder<Season>.CreateListOfSize(seasons).All().With(n => n.Monitored = true).Build().ToList())
+                                     .With(s => s.Seasons = Builder<Season>.CreateListOfSize(seasons)
+                                                                           .All()
+                                                                           .With(n => n.Monitored = true)
+                                                                           .Build()
+                                                                           .ToList())
                                      .Build();
 
             _episodes = Builder<Episode>.CreateListOfSize(seasons)
@@ -58,7 +62,7 @@ namespace NzbDrone.Core.Test.TvTests.SeriesAddedHandlerTests
             _series.AddOptions = options;
         }
 
-        private void WithSeriesScannedEvent()
+        private void TriggerSeriesScannedEvent()
         {
             Subject.Handle(new SeriesScannedEvent(_series));
         }
@@ -77,7 +81,7 @@ namespace NzbDrone.Core.Test.TvTests.SeriesAddedHandlerTests
         public void should_be_able_to_monitor_all_episodes()
         {
             WithSeriesAddedEvent(new AddSeriesOptions());
-            WithSeriesScannedEvent();
+            TriggerSeriesScannedEvent();
 
             Mocker.GetMock<IEpisodeService>()
                   .Verify(v => v.UpdateEpisodes(It.Is<List<Episode>>(l => l.All(e => e.Monitored))));
@@ -92,7 +96,7 @@ namespace NzbDrone.Core.Test.TvTests.SeriesAddedHandlerTests
                                      IgnoreEpisodesWithoutFiles = false
                                  });
 
-            WithSeriesScannedEvent();
+            TriggerSeriesScannedEvent();
 
             VerifyMonitored(e => !e.HasFile);
             VerifyNotMonitored(e => e.HasFile);
@@ -107,7 +111,7 @@ namespace NzbDrone.Core.Test.TvTests.SeriesAddedHandlerTests
                 IgnoreEpisodesWithoutFiles = true
             });
 
-            WithSeriesScannedEvent();
+            TriggerSeriesScannedEvent();
 
             VerifyMonitored(e => e.AirDateUtc.HasValue && e.AirDateUtc.Value.After(DateTime.UtcNow));
             VerifyMonitored(e => !e.AirDateUtc.HasValue);
@@ -125,7 +129,7 @@ namespace NzbDrone.Core.Test.TvTests.SeriesAddedHandlerTests
                 IgnoreEpisodesWithoutFiles = false
             });
 
-            WithSeriesScannedEvent();
+            TriggerSeriesScannedEvent();
 
             VerifyMonitored(e => !e.HasFile);
             VerifyNotMonitored(e => e.HasFile);
@@ -142,7 +146,7 @@ namespace NzbDrone.Core.Test.TvTests.SeriesAddedHandlerTests
                 IgnoreEpisodesWithoutFiles = true
             });
 
-            WithSeriesScannedEvent();
+            TriggerSeriesScannedEvent();
             VerifyMonitored(e => e.AirDateUtc.HasValue && e.AirDateUtc.Value.After(DateTime.UtcNow));
             VerifyMonitored(e => !e.AirDateUtc.HasValue);
             VerifyNotMonitored(e => e.AirDateUtc.HasValue && e.AirDateUtc.Value.Before(DateTime.UtcNow));
@@ -176,7 +180,7 @@ namespace NzbDrone.Core.Test.TvTests.SeriesAddedHandlerTests
                 IgnoreEpisodesWithoutFiles = true
             });
             
-            WithSeriesScannedEvent();
+            TriggerSeriesScannedEvent();
 
             VerifySeasonMonitored(n => n.SeasonNumber == 2);
             VerifySeasonNotMonitored(n => n.SeasonNumber == 1);

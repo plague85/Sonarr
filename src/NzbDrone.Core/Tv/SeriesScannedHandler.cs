@@ -30,14 +30,6 @@ namespace NzbDrone.Core.Tv
             _logger = logger;
         }
 
-        private void UnmonitorEpisodes(IEnumerable<Episode> episodes)
-        {
-            foreach (var episode in episodes)
-            {
-                episode.Monitored = false;
-            }
-        }
-        
         private void SetEpisodeMonitoredStatus(Series series, List<Episode> episodes)
         {
             _logger.Debug("[{0}] Setting episode monitored status.", series.Title);
@@ -54,11 +46,11 @@ namespace NzbDrone.Core.Tv
                 UnmonitorEpisodes(episodes.Where(e => !e.HasFile && e.AirDateUtc.HasValue && e.AirDateUtc.Value.Before(DateTime.UtcNow)));
             }
 
-            foreach (var season in series.Seasons)
+            var lastSeason = series.Seasons.Select(s => s.SeasonNumber).MaxOrDefault();
+
+            foreach (var season in series.Seasons.Where(s => s.SeasonNumber < lastSeason))
             {
-                if (series.Seasons.Select(s => s.SeasonNumber).MaxOrDefault() != season.SeasonNumber &&
-                    episodes.Where(e => e.SeasonNumber == season.SeasonNumber).All(e => !e.Monitored))
-                    
+                if (episodes.Where(e => e.SeasonNumber == season.SeasonNumber).All(e => !e.Monitored))
                 {
                     season.Monitored = false;
                 }
@@ -68,29 +60,33 @@ namespace NzbDrone.Core.Tv
             _episodeService.UpdateEpisodes(episodes);
         }
 
-        private void SearchForMissingEpisodes(Series series)
+        private void UnmonitorEpisodes(IEnumerable<Episode> episodes)
         {
-            _commandExecutor.PublishCommand(new MissingEpisodeSearchCommand(series.Id));
+            foreach (var episode in episodes)
+            {
+                episode.Monitored = false;
+            }
         }
 
         private void HandleScanEvents(Series series)
         {
             if (series.AddOptions == null)
             {
-                _logger.Debug("[{0}] Was not recently added, skipping post-add actions", series.Title);
                 return;
             }
+
+            _logger.Info("[{0}] was recently added, performing post-add actions", series.Title);
 
             var episodes = _episodeService.GetEpisodeBySeries(series.Id);
             SetEpisodeMonitoredStatus(series, episodes);
 
             if (series.AddOptions.SearchForMissingEpisodes)
             {
-                SearchForMissingEpisodes(series);
+                _commandExecutor.PublishCommand(new MissingEpisodeSearchCommand(series.Id));
             }
 
             series.AddOptions = null;
-            _seriesService.UpdateSeries(series);
+            _seriesService.RemoveAddOptions(series);
         }
 
         public void Handle(SeriesScannedEvent message)
